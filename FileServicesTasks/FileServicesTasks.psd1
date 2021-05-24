@@ -95,7 +95,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        # Tags = @()
+        Tags = @('powershell', 'desired state configuration', 'dsc', 'composite resource', 'configuration', 'windows server', 'dfs', 'smb')
 
         # A URL to the license for this module.
         # LicenseUri = ''
@@ -104,7 +104,7 @@ PrivateData = @{
         ProjectUri = 'https://prod1gitlab.mapcom.local/dsc/configurations/FileServicesTasks.git'
 
         # A URL to an icon representing this module.
-        # IconUri = ''
+        IconUri = 'https://dsccommunity.org/images/DSC_Logo_300p.png'
 
         # ReleaseNotes of this module
         # ReleaseNotes = ''

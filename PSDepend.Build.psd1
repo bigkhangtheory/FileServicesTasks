@@ -16,10 +16,10 @@
     BuildHelpers                 = 'latest'
     # Helper functions for PowerShell CI/CD scenarios
 
-    Datum                        = '0.39.0'
+    Datum                        = 'latest'
     # Module to manage Hierachical Configuration Data
 
-    'Datum.InvokeCommand'       = '0.1.2'
+    'Datum.InvokeCommand'       = 'latest'
     # Datum Handler module to encrypt and decrypt secrets in Datum using Dave Wyatt's ProtectedData module
 
     'Datum.ProtectedData'        = 'latest'
