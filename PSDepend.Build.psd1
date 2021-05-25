@@ -61,12 +61,6 @@
     # These DSC resources allow you to perform computer management tasks, such as renaming the computer,
     # joining a domain and scheduling tasks as well as configuring items such as virtual memory, event logs, time zones and power settings.
 
-    DfsDsc                = @{
-        Version        = '4.4.0'
-        DependencyType = 'PSGalleryModule'
-        Parameters     = @{
-            Repository = 'PSGallery'
-        }
-    }
+    DfsDsc                = 'latest'
     # DSC resources for configuring Distributed File System Replication and Namespaces.
 }
