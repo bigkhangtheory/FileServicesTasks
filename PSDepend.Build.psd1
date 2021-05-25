@@ -62,8 +62,11 @@
     # joining a domain and scheduling tasks as well as configuring items such as virtual memory, event logs, time zones and power settings.
 
     DfsDsc                = @{
-        Version = '4.4.0'
-        Source  = 'MapPSGallery'
+        Version        = '4.4.0'
+        DependencyType = 'PSGalleryModule'
+        Parameters     = @{
+            Repository = 'PSGallery'
+        }
     }
     # DSC resources for configuring Distributed File System Replication and Namespaces.
 }
