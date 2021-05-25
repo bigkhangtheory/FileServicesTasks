@@ -30,7 +30,7 @@ cache: &global_cache
 build:depends:
   stage: build
   script:
-    - .\Build.ps1 -ResolveDependency -Repository 'MapPSGallery'
+    - .\Build.ps1 -ResolveDependency
   cache:
     # inherit all global cache settings
     <<: *global_cache
