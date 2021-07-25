@@ -16,101 +16,76 @@ Groups:
     #
     # This allows a replication topology to assign to the Replication Group.
     # If set to 'Fullmesh', a full mesh topology between all members will be created.
-    #   Required Parameter(s):
-    #     - Members
     # If set to 'HubAndSpoke', a tree topology between the Hub node and child spoke nodes will be created.
-    #   Required Parameter(s):
-    #     - Hub
-    #     - Spokes
     Topology: HubAndSpoke
-    # Hub (requires HubAndSpoke)
-    #
-    # Specify the computer that is the Hub (master) node of this Hub and Spoke Replication Group.
-    Hub: CHE-APP-SRV01
-    # Spokes (requires HubAndSpoke)
-    #
-    # A list of computers that are child spoke nodes of this Hub and Spoke Replication Group.
-    Spokes:
-      # ComputerName
-      #
-      # The name of the Replication Group destination computer for the connection.
-      - ComputerName: DC2-WDS-SRV01
-        Ensure: Present
-        # Enabled
-        #
-        # Ensures that connection is either Enabled or Disabled.
-        Enabled: true
-        # Compression
-        #
-        # Ensures remote differential compression is Enabled or Disabled.
-        Compression: true
-        # ReadOnly
-        #
-        # Specify if this content path should be read only.
-        ReadOnly: true
-      
-      - ComputerName: TN2-DHCP-SRV01
-        Ensure: Present
-        Enabled: true 
-        Compression: true
-        ReadOnly: true
-      
-      - ComputerName: WA1-DHCP-SRV01
-        Ensure: Present
-        Enabled: true
-        Compression: true
-        ReadOnly: true
     # Members (required Fullmesh)
     #
     # A list of computers that are members of this Replication Group.
     # These can be specified using either the ComputerName or FQDN name for each member.
     # If an FQDN name is used and the DomainName parameter is set, the FQDN domain name must match.
-    #Members:
-    #  - CHE-APP-SRV01
-    #  - DC2-WDS-SRV01
-    #  - TN2-DHCP-SRV01
-    #  - WA1-DHCP-SRV01
+    Members:
+      - ComputerName: CHE-APP-SRV01
+        PrimaryMember: true
+        ReadOnly: false
+
+      - ComputerName: DC2-WDS-SRV01
+        PrimaryMember: false
+        ReadOnly: true
+        Enabled: true
+        Compression: true
+        Ensure: Present
+        
+      - ComputerName: TN2-DHCP-SRV01
+        PrimaryMember: false
+        ReadOnly: true
+        Enabled: true
+        Compression: true
+        Ensure: Present
+
+      - ComputerName: WA1-DHCP-SRV01
+        PrimaryMember: false
+        ReadOnly: true
+        Enabled: true
+        Compression: true
+        Ensure: Present
+
     # Folders
     #
     # A list of folders that are replicated in this Replication Group.
     Folders:
-      # FolderName
-      #
-      # The name of the DFS Replication Group Folder.
       - FolderName: DeploymentShare
-        Description: 'Contents of Microsoft Deployment Toolkit structure'
+        Description: 'Contents of Microsoft Deployment Toolkit'
+        FilenametoExclude:
+          - "*.bak"
+          - "*.tmp"
+          - "~.*"
+        #DirectoryNameToExclude:
+        #DfsnPath:
         # ContentPath
         #
         # The local content path for the DFS Replication Group Folder.
-        ContentPath: 'D:\DeploymentShare'
-        # FilenameToExclude
-        #
-        # An array of file names to exclude from replication.
-        FilenametoExclude:
-          - "~*"
-          - "*.bak"
-          - "*.tmp"
-        # DirectoryNameToExclude
-        #
-        # An array of directory names to exclude from replication.
-        # DirectoryNameToExclude:
-        # DfsnPath
-        #
-        # The DFS Namespace Path to this Replication Group folder is mapped to.
-        # This does NOT create the Namespace folders, it only sets the name in the folder object.
-        # DfsnPath:
-        # StagingPath
-        #
-        # The local staging path for the DFS Replication Group Folder.
-        StagingPath: D:\DeploymentShare\DfsrPrivate\Staging
+        ContentPath: D:\DeploymentShare
         # StagingPathQuotaInMB
         #
         # The staging path quota size in MB for the DFS Replication Group Folder.
         StagingPathQuotaInMB: 16384
-        # ConflictAndDeletedPath
+
+      - FolderName: Resources
+        Description: 'Additional contents to support Microsoft Deployment Toolkit'
+        FilenametoExclude:
+          - "*.bak"
+          - "*.tmp"
+          - "~.*"
+        #DirectoryNameToExclude:
+        #DfsnPath:
+        # ContentPath
         #
-        # The local content and deleted path for the DFS Replication Group Folder.
-        ConflictAndDeletedPath: D:\DeploymentShare\DfsrPrivate\ConflictAndDeleted
+        # The local content path for the DFS Replication Group Folder.
+        ContentPath: D:\Resources
+        # StagingPathQuotaInMB
+        #
+        # The staging path quota size in MB for the DFS Replication Group Folder.
+        StagingPathQuotaInMB: 16384
     # Credential
     #
     # Specify the credential of an account delegated management permissions to the Replication Group

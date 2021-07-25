@@ -54,6 +54,16 @@ configuration DfsReplicationGroups
 
 
     <#
+        Install Remote Differential Compression
+    #>
+    xWindowsFeature AddRdc
+    {
+        Name   = 'RDC'
+        Ensure = 'Present'
+    }
+    $dependsOnRdc = '[xWindowsFeature]AddRdc'
+    
+    <#
         Configure the replication group
     #>
     foreach ($g in $Groups)
@@ -75,29 +85,18 @@ configuration DfsReplicationGroups
                     $g.Ensure = 'Present'
                 }
 
-                # array of child nodes
-                $mySpokes = New-Object -TypeName System.Collections.Arraylist
-                foreach ($s in $g.Spokes)
-                {
-                    $computerName = $s.Computername
-                    $mySpokes.Add($computerName)
-                }
-
                 # array of member names
-                $myMembers = @() + $g.Hub + $mySpokes
+                $myMemberNames = New-Object -TypeName System.Collections.Arraylist
+                foreach ($m in $g.Members)
+                {
+                    $myMemberNames.Add($m.Item('ComputerName'))
+                }
                 
                 # array of folder names
                 $myFolderNames = New-Object -TypeName System.Collections.Arraylist
-                # array of content paths
-                $myContentPaths = New-Object -TypeName System.Collections.Arraylist
-
                 foreach ($f in $g.Folders)
                 {
-                    $folderName = $f.FolderName
-                    $myFolderNames.Add($folderName)
-
-                    $contentPath = $f.ContentPath
-                    $myContentPaths.Add($contentPath)
+                    $myFolderNames.Add($f.Item('FolderName'))
                 }
 
                 # configure the Replication Group resource
@@ -108,126 +107,143 @@ configuration DfsReplicationGroups
                     Ensure               = $g.Ensure
                     DomainName           = $g.DomainName
                     Topology             = 'Manual'
-                    Members              = $myMembers
+                    Members              = $myMemberNames
                     Folders              = $myFolderNames
-                    #ContentPaths         = $myContentPaths
                     PSDSCRunAsCredential = $g.Credential
                     DependsOn            = $dependsOnRsatDfsMgmtCon
                 } #end DFSReplicationGroup resource
                 $dependsOnDfsReplicationGroup = "[DFSReplicationGroup]$executionName"
 
 
-                # create array of hashtables
-                $myFolders = @() + $g.Folders
+                <#
+                    Configure all Replication Group Folders
+                #>
 
                 foreach ($f in $g.Folders)
                 {
+                    # remove case sensivity for ordered Dictionary or Hashtables
+                    $f = @{} + $f
+
                     # set execution name of the resource
                     $executionName = "Folder_$($f.FolderName -replace '[-().:\s]', '_')"
 
-                    # configure DFS Replication Group folder resource
+                    # configure DFS Replication Group Folder resource
                     DFSReplicationGroupFolder "$executionName"
                     {
-                        GroupName            = $g.GroupName
-                        FolderName           = $f.FolderName 
-                        Description          = $f.Description 
-                        FilenameToExclude = @() + $f.FilenameToExclude
-                        DirectoryNameToExclude = @() + $f.DirectoryNameToExclude
-                        DfsnPath             = $f.DfsnPath
-                        DomainName           = $g.DomainName
-                        PSDSCRunAsCredential = $g.Credential
-                        DependsOn            = $dependsOnDfsReplicationGroup
-                    } #end DFSReplicationGroupFolder resource
+                        GroupName              = $g.GroupName
+                        FolderName             = $f.FolderName 
+                        Description            = $f.Description
+                        FilenameToExclude      = $f.FilenameToExclude
+                        DirectoryNameToExclude = $f.DirectoryNameToExclude
+                        DfsnPath               = $f.DfsnPath
+                        DomainName             = $g.DomainName
+                        PsDscRunAsCredential   = $g.Credential
+                        DependsOn              = $dependsOnDfsReplicationGroup
+                    } #end DFSReplicationGroupFolder
                     $dependsOnDfsReplicationGroupFolder = "[DFSReplicationGroupFolder]$executionName"
 
 
-                    # configure DFS Replication Group folder primary membership resource
-                    $executionName = "Primary_$($g.Hub -replace '[-().:\s]', '_')"
-                    DFSReplicationGroupMembership "$executionName"
+
+                    <#
+                        Configure all members of the Replication Group for this Folder
+                    #>
+                    # identity the Primary member
+                    $primaryMember = $g.Members | Where-Object { $_.PrimaryMember -eq $true }
+
+                    # iterate through all members
+                    foreach ($m in $g.Members)
                     {
-                        GroupName            = $g.GroupName
-                        FolderName           = $f.FolderName
-                        ComputerName         = $g.Hub
-                        ContentPath          = $f.ContentPath
-                        #StagingPath            = $f.StagingPath
-                        #StagingPathQuotaInMB   = $f.StagingPathQuotaInMB
-                        #ConflictAndDeletedPath = $f.ConflictAndDeletedPath
-                        ReadOnly             = $false
-                        PrimaryMember        = $true
-                        DomainName           = $g.DomainName
-                        PSDSCRunAsCredential = $g.Credential
-                        DependsOn            = $dependsOnDfsReplicationGroupFolder
-                    }
+                        # remove case sensitity for ordered Dictionary or Hashtables
+                        $m = @{} + $m
+
+                        $myComputerName = $m.Item('ComputerName')
+
+                        # configure the primary member node
+                        if ($m.PrimaryMember -eq $true)
+                        {
+                            # create execution name for the resource
+                            $executionName = "Primary_$($f.FolderName)_$($m.ComputerName -replace '[-().:\s]', '_')"
+
+                            # this resource is used to configure Replication Group Folder Membership
+                            DFSReplicationGroupMembership "$executionName"
+                            {
+                                GroupName            = $g.GroupName
+                                FolderName           = $f.FolderName
+                                ComputerName         = $m.ComputerName
+                                ContentPath          = $f.ContentPath
+                                #StagingPath = $f.StagingPath
+                                #StagingPathQuotaInMB   = $f.StagingPathQuotaInMB
+                                #ConflictAndDeletedPath = $f.ConflictAndDeletedPath
+                                ReadOnly             = $false 
+                                PrimaryMember        = $true
+                                DomainName           = $g.DomainName
+                                PsDscRunAsCredential = $g.Credential
+                                DependsOn            = $dependsOnDfsReplicationGroupFolder
+                            } #end DFSReplicationGroupMembership
+
+                        } #end if
+                        elseif ($m.PrimaryMember -eq $false)
+                        {
+                            # create execution name for the resource
+                            $executionName = "Connection_$($f.FolderName)_$($myComputerName -replace '[-().:\s]', '_')"
+
+                            # if not specified, ensure 'Present'
+                            if ( $null -eq $m.Ensure)
+                            {
+                                $m.Ensure = 'Present'
+                            }
+
+                            # evaluate EnsureEnabled
+                            if ($m.Enabled -eq $false)
+                            {
+                                $isMemberEnabled = 'Disabled'
+                            }
+                            else { $isMemberEnabled = 'Enabled' }
+
+                            # evaluate EnsureRDCEnabled
+                            if ($m.Compression -eq $false)
+                            {
+                                $isRDCEnabled = 'Disabled'
+                            }
+                            else { $isRDCEnabled = 'Enabled' } 
+                            
+                            # this resource is used to create, edit, and remove DFS Replication Group connections
+                            DFSReplicationGroupConnection "$executionName"
+                            {
+                                GroupName               = $g.GroupName
+                                SourceComputerName      = $primaryMember.ComputerName #$($primaryMember.ComputerName)
+                                DestinationComputerName = $myComputerName
+                                Ensure                  = $g.Ensure
+                                EnsureEnabled           = $isMemberEnabled
+                                EnsureRDCEnabled        = $isRDCEnabled
+                                DomainName              = $g.DomainName
+                                PsDscRunAsCredential    = $g.Credential
+                                DependsOn = @() + $dependsOnRdc + $dependsOnDfsReplicationGroup
+                            } #end DFSReplicationGroupConnection
+                            $dependsOnDfsReplicationGroupConnection = "[DFSReplicationGroupConnection]$executionName"
 
 
-                    # configure DFS Replication Group folder child spoke member resource
-                    $mySpokeNodes = @() + $g.Spokes
-                    foreach ($s in $mySpokeNodes)
-                    {
-                        # if not specified, ensure 'Present'
-                        if ( $null -eq $s.Ensure )
-                        {
-                            $s.Ensure = 'Present'
-                        }
+                            # create execution name for the resource
+                            $executionName = "Membership_$($f.FolderName)_$($m.ComputerName -replace '[-().:\s]', '_')"
 
-                        # evaluate EnsureEnabled
-                        if ($s.Enabled -eq $false)
-                        {
-                            $s.EnsureEnabled = 'Disabled'
-                        }
-                        else
-                        {
-                            $s.EnsureEnabled = 'Enabled'
-                        }
 
-                        # evaluate EnsureRDCEnabled
-                        if ($s.Compression -eq $false)
-                        {
-                            $s.EnsureRDCEnabled = 'Disabled'
-                        }
-                        else
-                        {
-                            $s.EnsureRDCEnabled = 'Enabled'
-                        } 
-
-                        # set execution name for resource
-                        $executionName = "Connection_$($s.ComputerName -replace '[-().:\s]', '_')"
-                        # create DFS Replication Group connection to Hub
-                        DFSReplicationGroupConnection "$executionName"
-                        {
-                            GroupName               = $g.GroupName
-                            SourceComputerName      = $g.Hub
-                            DestinationComputerName = $s.ComputerName
-                            Ensure                  = 'Present'
-                            EnsureEnabled           = $s.EnsureEnabled
-                            EnsureRDCEnabled        = $s.EnsureRDCEnabled
-                            DomainName              = $g.DomainName
-                            PsDscRunAsCredential    = $g.Credential
-                            DependsOn               = $dependsOnDfsReplicationGroupFolder
-                        }
-                        $dependsOnDfsReplicationGroupConnection = "[DFSReplicationGroupConnection]$executionName"
-
-                        # set exection name for resource
-                        $executionName = "Membership_$($s.ComputerName -replace '[-().:\s]', '_')"
-
-                        DFSReplicationGroupMembership "$executionName"
-                        {
-                            GroupName            = $g.GroupName
-                            FolderName           = $f.FolderName
-                            ComputerName         = $s.ComputerName
-                            ContentPath          = $f.ContentPath
-                            #StagingPath            = $f.StagingPath
-                            #StagingPathQuotaInMB   = $f.StagingPathQuotaInMB
-                            #ConflictAndDeletedPath = $f.ConflictAndDeletedPath
-                            ReadOnly             = $s.ReadOnly
-                            PrimaryMember        = $true
-                            DomainName           = $g.DomainName
-                            PSDSCRunAsCredential = $g.Credential
-                            DependsOn            = $dependsOnDfsReplicationGroupConnection
+                            # this resource is used to configure Replication Group Folder Membership
+                            DFSReplicationGroupMembership "$executionName"
+                            {
+                                GroupName            = $g.GroupName
+                                FolderName           = $f.FolderName
+                                ComputerName         = $m.ComputerName
+                                ContentPath          = $f.ContentPath
+                                StagingPathQuotaInMB = $f.StagingPathQuotaInMB
+                                ReadOnly             = $m.ReadOnly
+                                PrimaryMember        = $m.PrimaryMember
+                                DomainName           = $g.DomainName
+                                PsDscRunAsCredential = $g.Credential
+                                DependsOn            = $dependsOnDfsReplicationGroupConnection
+                            } #end DFSReplicationGroupMembership
                         }
                     }
                 }
-
             }
             'FullMesh' {}
             Default {}
