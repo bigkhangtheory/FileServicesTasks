@@ -10,8 +10,7 @@
     "plantuml.exportOutDir": "Docs/Diagrams/out",
     "plantuml.render": "Local",
     "editor.fontFamily": "'CaskaydiaCove NF',Consolas, 'Courier New', monospace",
-    "powershell.codeFormatting.autoCorrectAliases": true,
-    "powershell.codeFormatting.preset": "OTBS",
+    "powershell.codeFormatting.preset": "Allman",
     "powershell.codeFormatting.trimWhitespaceAroundPipe": true,
     "powershell.codeFormatting.useCorrectCasing": true,
     "powershell.codeFormatting.useConstantStrings": true,
@@ -21,6 +20,7 @@
     "files.associations": {
       "*.mof": "json"
     },
-    "editor.inlineHints.fontFamily": "'CaskaydiaCove NF',Consolas, 'Courier New', monospace"
+    "editor.inlineHints.fontFamily": "'CaskaydiaCove NF',Consolas, 'Courier New', monospace",
+    "editor.formatOnSave": true
   }
 }

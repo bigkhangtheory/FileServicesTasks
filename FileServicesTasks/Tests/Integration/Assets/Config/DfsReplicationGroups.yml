@@ -1,0 +1,117 @@
+# Groups
+#
+# This resource is used to create, edit or remove DFS Replication Groups.
+Groups:
+  # GroupName
+  #
+  # The name of the DFS Replication Group.
+  - GroupName: Windows Deployment Services
+    Description: This replication group implements a distributed MDT deployment
+    Ensure: Present
+    # DomainName
+    #
+    # The AD domain the Replication Group should created in.
+    DomainName: mapcom.local
+    # Topology
+    #
+    # This allows a replication topology to assign to the Replication Group.
+    # If set to 'Fullmesh', a full mesh topology between all members will be created.
+    #   Required Parameter(s):
+    #     - Members
+    # If set to 'HubAndSpoke', a tree topology between the Hub node and child spoke nodes will be created.
+    #   Required Parameter(s):
+    #     - Hub
+    #     - Spokes
+    Topology: HubAndSpoke
+    # Hub (requires HubAndSpoke)
+    #
+    # Specify the computer that is the Hub (master) node of this Hub and Spoke Replication Group.
+    Hub: CHE-APP-SRV01
+    # Spokes (requires HubAndSpoke)
+    #
+    # A list of computers that are child spoke nodes of this Hub and Spoke Replication Group.
+    Spokes:
+      # ComputerName
+      #
+      # The name of the Replication Group destination computer for the connection.
+      - ComputerName: DC2-WDS-SRV01
+        Ensure: Present
+        # Enabled
+        #
+        # Ensures that connection is either Enabled or Disabled.
+        Enabled: true
+        # Compression
+        #
+        # Ensures remote differential compression is Enabled or Disabled.
+        Compression: true
+        # ReadOnly
+        #
+        # Specify if this content path should be read only.
+        ReadOnly: true
+      
+      - ComputerName: TN2-DHCP-SRV01
+        Ensure: Present
+        Enabled: true 
+        Compression: true
+        ReadOnly: true
+      
+      - ComputerName: WA1-DHCP-SRV01
+        Ensure: Present
+        Enabled: true
+        Compression: true
+        ReadOnly: true
+    # Members (required Fullmesh)
+    #
+    # A list of computers that are members of this Replication Group.
+    # These can be specified using either the ComputerName or FQDN name for each member.
+    # If an FQDN name is used and the DomainName parameter is set, the FQDN domain name must match.
+    #Members:
+    #  - CHE-APP-SRV01
+    #  - DC2-WDS-SRV01
+    #  - TN2-DHCP-SRV01
+    #  - WA1-DHCP-SRV01
+    # Folders
+    #
+    # A list of folders that are replicated in this Replication Group.
+    Folders:
+      # FolderName
+      #
+      # The name of the DFS Replication Group Folder.
+      - FolderName: DeploymentShare
+        Description: 'Contents of Microsoft Deployment Toolkit structure'
+        # ContentPath
+        #
+        # The local content path for the DFS Replication Group Folder.
+        ContentPath: 'D:\DeploymentShare'
+        # FilenameToExclude
+        #
+        # An array of file names to exclude from replication.
+        FilenametoExclude:
+          - "~*"
+          - "*.bak"
+          - "*.tmp"
+        # DirectoryNameToExclude
+        #
+        # An array of directory names to exclude from replication.
+        # DirectoryNameToExclude:
+        # DfsnPath
+        #
+        # The DFS Namespace Path to this Replication Group folder is mapped to.
+        # This does NOT create the Namespace folders, it only sets the name in the folder object.
+        # DfsnPath:
+        # StagingPath
+        #
+        # The local staging path for the DFS Replication Group Folder.
+        StagingPath: D:\DeploymentShare\DfsrPrivate\Staging
+        # StagingPathQuotaInMB
+        #
+        # The staging path quota size in MB for the DFS Replication Group Folder.
+        StagingPathQuotaInMB: 16384
+        # ConflictAndDeletedPath
+        #
+        # The local content and deleted path for the DFS Replication Group Folder.
+        ConflictAndDeletedPath: D:\DeploymentShare\DfsrPrivate\ConflictAndDeleted
+    # Credential
+    #
+    # Specify the credential of an account delegated management permissions to the Replication Group
+    Credential: '[ENC=PE9ianMgVmVyc2lvbj0iMS4xLjAuMSIgeG1sbnM9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vcG93ZXJzaGVsbC8yMDA0LzA0Ij4NCiAgPE9iaiBSZWZJZD0iMCI+DQogICAgPFROIFJlZklkPSIwIj4NCiAgICAgIDxUPlN5c3RlbS5NYW5hZ2VtZW50LkF1dG9tYXRpb24uUFNDdXN0b21PYmplY3Q8L1Q+DQogICAgICA8VD5TeXN0ZW0uT2JqZWN0PC9UPg0KICAgIDwvVE4+DQogICAgPE1TPg0KICAgICAgPE9iaiBOPSJLZXlEYXRhIiBSZWZJZD0iMSI+DQogICAgICAgIDxUTiBSZWZJZD0iMSI+DQogICAgICAgICAgPFQ+U3lzdGVtLk9iamVjdFtdPC9UPg0KICAgICAgICAgIDxUPlN5c3RlbS5BcnJheTwvVD4NCiAgICAgICAgICA8VD5TeXN0ZW0uT2JqZWN0PC9UPg0KICAgICAgICA8L1ROPg0KICAgICAgICA8TFNUPg0KICAgICAgICAgIDxPYmogUmVmSWQ9IjIiPg0KICAgICAgICAgICAgPFROUmVmIFJlZklkPSIwIiAvPg0KICAgICAgICAgICAgPE1TPg0KICAgICAgICAgICAgICA8UyBOPSJIYXNoIj5GQUEyN0MwNjlFNEUwQjA1ODAwN0U3NjRFQThGMDU4N0NEQkJDMDQ1MDMxN0JGRTg1NjJCQzc1MUQzMDg4Rjk0PC9TPg0KICAgICAgICAgICAgICA8STMyIE49Ikl0ZXJhdGlvbkNvdW50Ij41MDAwMDwvSTMyPg0KICAgICAgICAgICAgICA8QkEgTj0iS2V5Ij5LTEpZOENrbjhvcGFsNXNaOUJPaU9QbUMzYnRVMXIzNmp1UFlMQmsyVUEvNmZFeGcwNS9iaW5RTFEydkVnRTJZPC9CQT4NCiAgICAgICAgICAgICAgPEJBIE49Ikhhc2hTYWx0Ij5xWUYzVjlRcStRM0NMdTV1MHRQcWROcUowT0FrdmtGK2VPQVBxNGVCUG1NPTwvQkE+DQogICAgICAgICAgICAgIDxCQSBOPSJTYWx0Ij5Ra1U1bnZ3b3JsR0ZxdE9WOC9ncFloWUZLRUNleEpFSTRNYnNJNUVFWjY4PTwvQkE+DQogICAgICAgICAgICAgIDxCQSBOPSJJViI+VmN3ZStiTTQwY2tNSk1STCtOWW9OOVRjcWRKVnp2QUV4Mzd6ZmExdzA5OD08L0JBPg0KICAgICAgICAgICAgPC9NUz4NCiAgICAgICAgICA8L09iaj4NCiAgICAgICAgPC9MU1Q+DQogICAgICA8L09iaj4NCiAgICAgIDxCQSBOPSJDaXBoZXJUZXh0Ij54bFl2TzZQbFhUbXh2ZXJHd1FkS0Y1MmZSemtkVGFKSGJ2V3FqdDRXSXJhemYrcHBsMHErQ2FYcGJlV0Z6Ny8zRitUY01EU0lLRkZJdFpocWwrcGV5TlE3S3pjZlRINlFuMVdzK0IvVGVxWT08L0JBPg0KICAgICAgPEJBIE49IkhNQUMiPjF3dU4vNkdmYW14V0d1Y3FoNEZjWjJ4emk2SUVZWnJjMXBNOXAyWTNjNjQ9PC9CQT4NCiAgICAgIDxTIE49IlR5cGUiPlN5c3RlbS5NYW5hZ2VtZW50LkF1dG9tYXRpb24uUFNDcmVkZW50aWFsPC9TPg0KICAgIDwvTVM+DQogIDwvT2JqPg0KPC9PYmpzPg==]'

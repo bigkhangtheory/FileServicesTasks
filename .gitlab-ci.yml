@@ -30,7 +30,7 @@ cache: &global_cache
 build:depends:
   stage: build
   script:
-    - .\Build.ps1 -ResolveDependency
+    - .\Build.ps1 -ResolveDependency -Repository
   cache:
     # inherit all global cache settings
     <<: *global_cache
