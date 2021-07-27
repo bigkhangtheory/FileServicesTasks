@@ -21,9 +21,8 @@ configuration DfsReplicationGroups
     #>
     xWindowsFeature AddFileServer
     {
-        Name      = 'FS-FileServer'
-        Ensure    = 'Present'
-        DependsOn = '[xService]LanmanServerRunning'
+        Name   = 'FS-FileServer'
+        Ensure = 'Present'
     }
     xWindowsFeature AddDfsReplication
     {
