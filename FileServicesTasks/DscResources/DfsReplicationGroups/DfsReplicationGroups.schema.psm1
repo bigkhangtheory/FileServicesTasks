@@ -16,19 +16,6 @@ configuration DfsReplicationGroups
     Import-DscResource -ModuleName xPSDesiredStateConfiguration
     Import-DscResource -ModuleName DFSDsc
 
-
-    <#
-        Ensure service dependencies
-    #>
-    xService LanmanServerRunning
-    {
-        Name         = 'LanmanServer'
-        Ensure       = 'Present'
-        Dependencies = @(
-            'SamSS', 'Srv2'
-        )
-        State        = 'Running'
-    }
     <#
         Install File Services and DFS prerequisites
     #>

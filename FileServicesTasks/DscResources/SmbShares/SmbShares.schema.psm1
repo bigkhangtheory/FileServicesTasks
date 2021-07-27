@@ -22,9 +22,9 @@
 
     $featureFileServer = '[WindowsFeature]featureFileServer'
 
-    if( $null -ne $ServerConfiguration )
+    if ( $null -ne $ServerConfiguration )
     {
-        if( $ServerConfiguration.EnableSMB1Protocol -eq $false )
+        if ( $ServerConfiguration.EnableSMB1Protocol -eq $false )
         {
             WindowsFeature removeSMB1
             {
@@ -35,30 +35,30 @@
         }
 
         $ServerConfiguration.IsSingleInstance = 'Yes'
-        $ServerConfiguration.DependsOn        = $featureFileServer
+        $ServerConfiguration.DependsOn = $featureFileServer
 
-        (Get-DscSplattedResource -ResourceName SmbServerConfiguration -ExecutionName "smbServerConfig" -Properties $ServerConfiguration -NoInvoke).Invoke($ServerConfiguration)
+        (Get-DscSplattedResource -ResourceName SmbServerConfiguration -ExecutionName 'smbServerConfig' -Properties $ServerConfiguration -NoInvoke).Invoke($ServerConfiguration)
     }
 
-    if( $null -ne $Shares )
+    if ( $null -ne $Shares )
     { 
-        foreach( $share in $Shares )
+        foreach ( $share in $Shares )
         {
             # Remove Case Sensitivity of ordered Dictionary or Hashtables
-            $share = @{}+$share
+            $share = @{} + $share
 
             $shareId = $share.Name -replace '[:$\s]', '_'
 
             $share.DependsOn = $featureFileServer
 
-            if( -not $share.ContainsKey('Ensure') )
+            if ( -not $share.ContainsKey('Ensure') )
             {
                 $share.Ensure = 'Present'
             }
 
-            if( $share.Ensure -eq 'Present' )
+            if ( $share.Ensure -eq 'Present' )
             {
-                if( [string]::IsNullOrWhiteSpace($share.Path) )
+                if ( [string]::IsNullOrWhiteSpace($share.Path) )
                 {
                     throw "ERROR: Missing path of the SMB share '$($share.Name)'."
                 }
@@ -66,7 +66,7 @@
                 # skip root paths
                 $dirInfo = New-Object -TypeName System.IO.DirectoryInfo -ArgumentList $share.Path
 
-                if( $null -ne $dirInfo.Parent )
+                if ( $null -ne $dirInfo.Parent )
                 {
                     File "Folder_$shareId"
                     {
