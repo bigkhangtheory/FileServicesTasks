@@ -87,7 +87,7 @@ deploy:
   stage: deploy
   needs: ["test"]
   script:
-    - .\Build.ps1 -Tasks Init, SetPSModulePath, Deploy
+    - .\Build.ps1 -ResolveDependency -Tasks Init, SetPSModulePath, Deploy
   cache:
     # inherit all global cache settings
     <<: *global_cache
