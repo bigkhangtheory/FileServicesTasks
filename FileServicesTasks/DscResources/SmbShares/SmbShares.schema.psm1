@@ -1,13 +1,19 @@
-﻿configuration SmbShares
+﻿<#
+    .DESCRIPTION
+        This configuration is used to manage SMB server configuration, SMB shares, and acccess permissions to SMB shares.
+#>
+#Requires -Module ComputerManagementDsc
+
+configuration SmbShares
 {
     param
     (
         [Parameter()]
-        [hashtable]
+        [System.Collections.Hashtable]
         $ServerConfiguration,
 
         [Parameter()]
-        [hashtable[]]
+        [System.Collections.Hashtable[]]
         $Shares
     )
 
@@ -47,7 +53,8 @@
             # Remove Case Sensitivity of ordered Dictionary or Hashtables
             $share = @{} + $share
 
-            $shareId = $share.Name -replace '[:$\s]', '_'
+            # create execution name for the resource
+            $shareId = "$($share.Name -replace '[-().:$\s]', '_')"
 
             $share.DependsOn = $featureFileServer
 
@@ -66,7 +73,7 @@
                 # skip root paths
                 $dirInfo = New-Object -TypeName System.IO.DirectoryInfo -ArgumentList $share.Path
 
-                if ( $null -ne $dirInfo.Parent )
+                if ( -not (Test-Path -Path $share.Path) )
                 {
                     File "Folder_$shareId"
                     {
@@ -84,7 +91,14 @@
                 $share.Path = 'Unused'
             }
 
-            (Get-DscSplattedResource -ResourceName SmbShare -ExecutionName "SmbShare_$shareId" -Properties $share -NoInvoke).Invoke($share)
+            # create DSC resource for SMB share
+            $Splatting = @{
+                ResourceName  = 'SmbShare'
+                ExecutionName = "SmbShare_$shareId"
+                Properties    = $share
+                NoInvoke      = $true
+            }
+            (Get-DscSplattedResource @Splatting).Invoke($share)
         }
     }  
 }

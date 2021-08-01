@@ -1,9 +1,11 @@
 # =============================================================================
 stages:
-  - build
-#  - test 
-#  - staging
-#  - deploy
+  - clean
+  - depends
+  - prepare
+  - test
+  - deploy
+  - release
 
 # =============================================================================
 # GLOBAL SETTINGS
@@ -21,21 +23,92 @@ cache: &global_cache
   key: ${CI_COMMIT_REF_SLUG}
   untracked: true
   paths:
-    - BuildOutput/Modules
+    - BuildOutput
   policy: pull-push
 
 # -----------------------------------------------------------------------------
-# STAGE: BUILD
+# STAGE: CLEAN
 # -----------------------------------------------------------------------------
-build:depends:
-  stage: build
+clean:
+  stage: clean
   script:
-    - .\Build.ps1 -ResolveDependency
+    - .\Build.ps1 -Tasks CleanBuildOutput
   cache:
-    # inherit all global cache settings
+    <<: *global_cache
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      changes:
+        - PSDepend.Build.psd1
+
+# -----------------------------------------------------------------------------
+# STAGE: DEPENDS
+# -----------------------------------------------------------------------------
+depends:
+  stage: depends
+  needs: ["clean"]
+  script:
+    - .\Build.ps1 -ResolveDependency -Tasks DownloadDscResources 
+  cache:
+    <<: *global_cache
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      changes:
+        - PSDepend.Build.psd1
+
+# -----------------------------------------------------------------------------
+# STAGE: PREPARE
+# -----------------------------------------------------------------------------
+prepare:
+  stage: prepare
+  script:
+    - .\Build.ps1 -Tasks Init, SetPSModulePath, CopyModule
+  cache:
+    <<: *global_cache
+  only:
+    - master
+
+# -----------------------------------------------------------------------------
+# STAGE: TEST
+# -----------------------------------------------------------------------------
+test:
+  stage: test
+  needs: ["prepare"]
+  script:
+    - .\Build.ps1 -Tasks Init, SetPSModulePath, IntegrationTest
+  cache:
     <<: *global_cache
   artifacts:
     reports:
       junit: ["BuildOutput/Pester/IntegrationTestResults.xml"]
+  only:
+    - master
+
+# -----------------------------------------------------------------------------
+# STAGE: DEPLOY
+# -----------------------------------------------------------------------------
+deploy:
+  stage: deploy
+  needs: ["test"]
+  script:
+    - .\Build.ps1 -Tasks Init, SetPSModulePath, Deploy
+  cache:
+    # inherit all global cache settings
+    <<: *global_cache
+  only:
+    - master
+
+# -----------------------------------------------------------------------------
+# STAGE: RELEASE
+# -----------------------------------------------------------------------------
+release:
+  stage: release
+  needs: ["deploy"]
+  script:
+    - .\Build.ps1 -Tasks Init, SetPSModulePath, TestReleaseAcceptance
+  cache:
+    <<: *global_cache
+  artifacts:
+    reports:
+      junit: ["BuildOutput/Pester/AcceptanceTestResults.xml"]
   only:
     - master
