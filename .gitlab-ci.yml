@@ -1,11 +1,7 @@
 # =============================================================================
 stages:
   - clean
-  - depends
-  - prepare
-  - test
-  - deploy
-  - release
+  - build
 
 # =============================================================================
 # GLOBAL SETTINGS
@@ -39,73 +35,16 @@ clean:
     - master
 
 # -----------------------------------------------------------------------------
-# STAGE: DEPENDS
+# STAGE: BUILD
 # -----------------------------------------------------------------------------
-depends:
-  stage: depends
-  needs: ["clean"]
+build:
+  stage: build
   script:
-    - .\Build.ps1 -ResolveDependency -Tasks DownloadDscResources 
-  cache:
-    <<: *global_cache
-  only:
-    - master
-
-# -----------------------------------------------------------------------------
-# STAGE: PREPARE
-# -----------------------------------------------------------------------------
-prepare:
-  stage: prepare
-  needs: ["depends"]
-  script:
-    - .\Build.ps1 -Tasks Init, SetPSModulePath, CopyModule
-  cache:
-    <<: *global_cache
-  only:
-    - master
-
-# -----------------------------------------------------------------------------
-# STAGE: TEST
-# -----------------------------------------------------------------------------
-test:
-  stage: test
-  needs: ["prepare"]
-  script:
-    - .\Build.ps1 -Tasks Init, SetPSModulePath, IntegrationTest
+    - .\Build.ps1 -ResolveDependency
   cache:
     <<: *global_cache
   artifacts:
     reports:
-      junit: ["BuildOutput/Pester/IntegrationTestResults.xml"]
-  only:
-    - master
-
-# -----------------------------------------------------------------------------
-# STAGE: DEPLOY
-# -----------------------------------------------------------------------------
-deploy:
-  stage: deploy
-  needs: ["test"]
-  script:
-    - .\Build.ps1 -ResolveDependency -Tasks Init, SetPSModulePath, Deploy
-  cache:
-    # inherit all global cache settings
-    <<: *global_cache
-  only:
-    - master
-
-# -----------------------------------------------------------------------------
-# STAGE: RELEASE
-# -----------------------------------------------------------------------------
-release:
-  stage: release
-  needs: ["deploy"]
-  script:
-    - .\Build.ps1 -Tasks Init, SetPSModulePath, TestReleaseAcceptance
-  cache:
-    <<: *global_cache
-  artifacts:
-    reports:
-      junit: ["BuildOutput/Pester/AcceptanceTestResults.xml"]
+      junit: ["BuildOutput/IntegrationTestResults.xml", "BuildOutput/AcceptanceTestResults.xml"]
   only:
     - master
