@@ -40,6 +40,7 @@
     'posh-git'                   = 'latest'
     # Provides prompt with Git status summary information and tab completion for Git commands, parameters, remotes and branch names.
 
+    PowerShellGet                = 'latest'
     'powershell-yaml'            = 'latest'
     # Powershell module for serializing and deserializing YAML
 
