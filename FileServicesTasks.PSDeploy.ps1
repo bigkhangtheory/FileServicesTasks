@@ -35,7 +35,6 @@ if ($env:BHBranchName -eq 'master' -and $env:NugetApiKey) {
                 To $env:NugetFeed
                 WithOptions @{
                     ApiKey = $env:NugetApiKey
-                    Force  = $true
                 }
             }
         }

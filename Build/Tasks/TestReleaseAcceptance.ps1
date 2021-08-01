@@ -19,7 +19,7 @@ Task TestReleaseAcceptance {
             $sourcePath = "$($env:AGENT_RELEASEDIRECTORY)\$($env:BUILD_DEFINITIONNAME)\SourcesDirectory\BuildOutput\Modules\$($env:BUILD_REPOSITORY_NAME)"
             $testResultsPath = "$($env:AGENT_RELEASEDIRECTORY)\$($env:BUILD_DEFINITIONNAME)\SourcesDirectory\BuildOutput\Pester"
         }
-        elseif ($env:BHBuildSystem -eq 'Unknown')
+        elseif ($env:BHBuildSystem -eq 'Gitlab CI')
         {
             $sourcePath = "$($env:BHBuildOutput)\Modules\$($env:BHProjectName)"
             $testResultsPath = "$($env:BHBuildOutput)\Pester"

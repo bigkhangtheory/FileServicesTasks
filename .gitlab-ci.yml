@@ -35,10 +35,8 @@ clean:
     - .\Build.ps1 -Tasks CleanBuildOutput
   cache:
     <<: *global_cache
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-      changes:
-        - PSDepend.Build.psd1
+  only:
+    - master
 
 # -----------------------------------------------------------------------------
 # STAGE: DEPENDS
@@ -50,16 +48,15 @@ depends:
     - .\Build.ps1 -ResolveDependency -Tasks DownloadDscResources 
   cache:
     <<: *global_cache
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-      changes:
-        - PSDepend.Build.psd1
+  only:
+    - master
 
 # -----------------------------------------------------------------------------
 # STAGE: PREPARE
 # -----------------------------------------------------------------------------
 prepare:
   stage: prepare
+  needs: ["depends"]
   script:
     - .\Build.ps1 -Tasks Init, SetPSModulePath, CopyModule
   cache:

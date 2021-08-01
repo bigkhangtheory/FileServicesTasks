@@ -5,7 +5,7 @@ Task Deploy {
         Path    = $ProjectPath
         Force   = $true
         Recurse = $false
-        Verbose = $true
+        Verbose = $false
     }
     Invoke-PSDeploy @Params
 }
