@@ -18,7 +18,6 @@ if ($env:BHBranchName -eq 'master' -and $env:NugetApiKey) {
                 To PowerShell
                 WithOptions @{
                     ApiKey = $env:NuGetApiKey
-                    Force  = $true
                 }
             }
         }
