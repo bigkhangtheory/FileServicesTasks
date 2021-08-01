@@ -45,6 +45,6 @@ build:
     <<: *global_cache
   artifacts:
     reports:
-      junit: ["BuildOutput/IntegrationTestResults.xml", "BuildOutput/AcceptanceTestResults.xml"]
+      junit: ["BuildOutput/Pester/IntegrationTestResults.xml", "BuildOutput/Pester/AcceptanceTestResults.xml"]
   only:
     - master
