@@ -3,7 +3,6 @@ Task Deploy {
 
     $Params = @{
         Path    = $ProjectPath
-        Force   = $true
         Recurse = $false
         Verbose = $false
     }
