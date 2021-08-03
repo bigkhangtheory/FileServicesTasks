@@ -158,7 +158,7 @@ configuration DfsReplicationGroups
                                 ComputerName         = $m.ComputerName
                                 ContentPath          = $f.ContentPath
                                 #StagingPath = $f.StagingPath
-                                #StagingPathQuotaInMB   = $f.StagingPathQuotaInMB
+                                StagingPathQuotaInMB   = $f.StagingPathQuotaInMB
                                 #ConflictAndDeletedPath = $f.ConflictAndDeletedPath
                                 ReadOnly             = $false 
                                 PrimaryMember        = $true
