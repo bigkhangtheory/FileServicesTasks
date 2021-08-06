@@ -116,15 +116,15 @@ configuration DfsReplicationGroups
                     # configure DFS Replication Group Folder resource
                     DFSReplicationGroupFolder "$executionName"
                     {
-                        GroupName              = $g.GroupName
-                        FolderName             = $f.FolderName 
-                        Description            = $f.Description
-                        FilenameToExclude      = $f.FilenameToExclude
-                        DirectoryNameToExclude = $f.DirectoryNameToExclude
-                        DfsnPath               = $f.DfsnPath
-                        DomainName             = $g.DomainName
-                        PsDscRunAsCredential   = $g.Credential
-                        DependsOn              = $dependsOnDfsReplicationGroup
+                        GroupName            = $g.GroupName
+                        FolderName           = $f.FolderName 
+                        Description          = $f.Description
+                        FilenameToExclude = @() + $f.FilenameToExclude
+                        DirectoryNameToExclude = @() + $f.DirectoryNameToExclude
+                        DfsnPath             = $f.DfsnPath
+                        DomainName           = $g.DomainName
+                        PsDscRunAsCredential = $g.Credential
+                        DependsOn            = $dependsOnDfsReplicationGroup
                     } #end DFSReplicationGroupFolder
                     $dependsOnDfsReplicationGroupFolder = "[DFSReplicationGroupFolder]$executionName"
 
@@ -158,7 +158,7 @@ configuration DfsReplicationGroups
                                 ComputerName         = $m.ComputerName
                                 ContentPath          = $f.ContentPath
                                 #StagingPath = $f.StagingPath
-                                StagingPathQuotaInMB   = $f.StagingPathQuotaInMB
+                                StagingPathQuotaInMB = $f.StagingPathQuotaInMB
                                 #ConflictAndDeletedPath = $f.ConflictAndDeletedPath
                                 ReadOnly             = $false 
                                 PrimaryMember        = $true
