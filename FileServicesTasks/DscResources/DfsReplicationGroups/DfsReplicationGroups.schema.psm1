@@ -121,7 +121,6 @@ configuration DfsReplicationGroups
                         Description          = $f.Description
                         FilenameToExclude = @() + $f.FilenameToExclude
                         DirectoryNameToExclude = @() + $f.DirectoryNameToExclude
-                        DfsnPath             = $f.DfsnPath
                         DomainName           = $g.DomainName
                         PsDscRunAsCredential = $g.Credential
                         DependsOn            = $dependsOnDfsReplicationGroup
