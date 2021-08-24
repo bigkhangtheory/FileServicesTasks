@@ -4,15 +4,23 @@
 #>
 #Requires -Module ComputerManagementDsc
 
+
 configuration SmbShares
 {
     param
     (
         [Parameter()]
+        [ValidateSet('Server', 'Client')]
+        [System.String]
+        $HostOS = 'Server',
+        
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
         [System.Collections.Hashtable]
         $ServerConfiguration,
 
         [Parameter()]
+        [ValidateNotNullOrEmpty()]
         [System.Collections.Hashtable[]]
         $Shares
     )
@@ -20,28 +28,35 @@ configuration SmbShares
     Import-DscResource -ModuleName PSDesiredStateConfiguration
     Import-DscResource -ModuleName ComputerManagementDsc
 
-    WindowsFeature featureFileServer
+    if ( $HostOS -eq 'Server' )
     {
-        Name   = 'FS-FileServer'
-        Ensure = 'Present'
-    }
+        WindowsFeature featureFileServer
+        {
+            Name   = 'FS-FileServer'
+            Ensure = 'Present'
+        }
 
-    $featureFileServer = '[WindowsFeature]featureFileServer'
+        $featureFileServer = '[WindowsFeature]featureFileServer'
+    }
 
     if ( $null -ne $ServerConfiguration )
     {
-        if ( $ServerConfiguration.EnableSMB1Protocol -eq $false )
+        if ( $HostOS -eq 'Server' )
         {
-            WindowsFeature removeSMB1
+            if ( $ServerConfiguration.EnableSMB1Protocol -eq $false )
             {
-                Name      = 'FS-SMB1'
-                Ensure    = 'Absent'
-                DependsOn = $featureFileServer
+                WindowsFeature removeSMB1
+                {
+                    Name      = 'FS-SMB1'
+                    Ensure    = 'Absent'
+                    DependsOn = $featureFileServer
+                }
             }
+
+            $ServerConfiguration.DependsOn = $featureFileServer
         }
 
         $ServerConfiguration.IsSingleInstance = 'Yes'
-        $ServerConfiguration.DependsOn = $featureFileServer
 
         (Get-DscSplattedResource -ResourceName SmbServerConfiguration -ExecutionName 'smbServerConfig' -Properties $ServerConfiguration -NoInvoke).Invoke($ServerConfiguration)
     }
@@ -53,8 +68,7 @@ configuration SmbShares
             # Remove Case Sensitivity of ordered Dictionary or Hashtables
             $share = @{} + $share
 
-            # create execution name for the resource
-            $shareId = "$($share.Name -replace '[-().:$\s]', '_')"
+            $shareId = $share.Name -replace '[:$\s]', '_'
 
             $share.DependsOn = $featureFileServer
 
@@ -73,7 +87,7 @@ configuration SmbShares
                 # skip root paths
                 $dirInfo = New-Object -TypeName System.IO.DirectoryInfo -ArgumentList $share.Path
 
-                if ( -not (Test-Path -Path $share.Path) )
+                if ( $null -ne $dirInfo.Parent )
                 {
                     File "Folder_$shareId"
                     {
@@ -91,14 +105,7 @@ configuration SmbShares
                 $share.Path = 'Unused'
             }
 
-            # create DSC resource for SMB share
-            $Splatting = @{
-                ResourceName  = 'SmbShare'
-                ExecutionName = "SmbShare_$shareId"
-                Properties    = $share
-                NoInvoke      = $true
-            }
-            (Get-DscSplattedResource @Splatting).Invoke($share)
-        }
-    }  
-}
+            (Get-DscSplattedResource -ResourceName SmbShare -ExecutionName "SmbShare_$shareId" -Properties $share -NoInvoke).Invoke($share)
+        } #end foreach
+    } #end if
+} #end configuration

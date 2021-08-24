@@ -24,7 +24,7 @@
     Author               = 'Khang M. Nguyen'
 
     # Company or vendor of this module
-    CompanyName          = 'MAP Communications, Inc.'
+    CompanyName          = '@bigkhangtheory'
 
     # Copyright statement for this module
     Copyright            = '(c) Khang M. Nguyen. All rights reserved.'
@@ -129,4 +129,3 @@
     # DefaultCommandPrefix = ''
 
 }
-

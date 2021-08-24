@@ -51,8 +51,6 @@ Shares:
     CachingMode: Manual
     ContinuouslyAvailable: false
     FullAccess:
-      - 'MAPCOM\wdsaccess'
-      - 'MAPCOM\System Administrators (III)'
     ChangeAccess: AdminUser1
     ReadAccess: Everyone
     NoAccess:
