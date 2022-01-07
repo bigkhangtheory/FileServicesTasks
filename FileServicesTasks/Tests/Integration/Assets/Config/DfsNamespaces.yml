@@ -1,10 +1,14 @@
-DomainFqdn: contoso.com
-NamespaceConfig:
-  - Sharename: AdminShare
-    Targets:
-      - DscFile01
-      - DscFile02
+DomainFqdn: example.com
+RootShares:
+  - Name: AdminShare
+    Type: DomainV2
+    SiteCosting: true
+    InSiteReferrals: true
+    AccessBasedEnumeration: true
+    RootScalability: true
+    TargetFailback: true
+    ReferralPriorityClass: SiteCost-Normal
+    ReferralPriorityRank: 0
+    TimeToLiveSec: 300
+
   - Sharename: Software
-    Targets:
-      - DscFile01
-      - DscFile02

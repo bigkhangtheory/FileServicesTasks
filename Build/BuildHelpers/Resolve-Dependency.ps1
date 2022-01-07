@@ -19,7 +19,7 @@ function Resolve-Dependency {
     }
 
     if (-not (Get-Module -Name "$buildModulesPath\PSDepend" -ListAvailable -ErrorAction SilentlyContinue)) {
-        Write-Verbose -Message 'BootStrapping PSDepend'    
+        Write-Verbose -Message 'BootStrapping PSDepend'
         Write-Verbose -Message "Parameter $buildOutput"
         $installPSDependParams = @{
             Name    = 'PSDepend'
@@ -44,6 +44,16 @@ function Resolve-Dependency {
     $psDependParams = @{
         Force = $true
         Path  = "$ProjectPath\PSDepend.Build.psd1"
+    }
+    if ($PSBoundParameters.ContainsKey('Verbose')) {
+        $psDependParams.Add('Verbose', $Verbose)
+    }
+    Import-Module -Name PSDepend
+    Invoke-PSDependInternal -PSDependParameters $psDependParams -Reporitory $Repository
+
+    $psDependParams = @{
+        Force = $true
+        Path  = "$ProjectPath\PSDepend.BuildPrerelease.psd1"
     }
     if ($PSBoundParameters.ContainsKey('Verbose')) {
         $psDependParams.Add('Verbose', $Verbose)
